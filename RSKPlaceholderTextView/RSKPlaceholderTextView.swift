@@ -44,7 +44,7 @@ import UIKit
     
     override public var textContainerInset: UIEdgeInsets { didSet { setNeedsDisplay() } }
     
-    override public var typingAttributes: [String : AnyObject] {
+    override public var typingAttributes: [String : Any] {
         didSet {
             guard isEmpty else {
                 return
@@ -56,7 +56,7 @@ import UIKit
     // MARK: - Object Lifecycle
     
     deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self, name: UITextViewTextDidChangeNotification, object: self)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UITextViewTextDidChange, object: self)
     }
     
     required public init?(coder aDecoder: NSCoder) {
@@ -71,8 +71,8 @@ import UIKit
     
     // MARK: - Drawing
     
-    override public func drawRect(rect: CGRect) {
-        super.drawRect(rect)
+    override public func draw(_ rect: CGRect) {
+        super.draw(rect)
         
         guard isEmpty else {
             return
@@ -81,14 +81,14 @@ import UIKit
             return
         }
         
-        var placeholderAttributes = typingAttributes ?? [String: AnyObject]()
+        var placeholderAttributes = typingAttributes
         if placeholderAttributes[NSFontAttributeName] == nil {
-            placeholderAttributes[NSFontAttributeName] = typingAttributes[NSFontAttributeName] ?? font ?? UIFont.systemFontOfSize(UIFont.systemFontSize())
+            placeholderAttributes[NSFontAttributeName] = typingAttributes[NSFontAttributeName] ?? font ?? UIFont.systemFont(ofSize: UIFont.systemFontSize)
         }
         if placeholderAttributes[NSParagraphStyleAttributeName] == nil {
             let typingParagraphStyle = typingAttributes[NSParagraphStyleAttributeName]
             if typingParagraphStyle == nil {
-                let paragraphStyle = NSMutableParagraphStyle.defaultParagraphStyle().mutableCopy() as! NSMutableParagraphStyle
+                let paragraphStyle = NSMutableParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
                 paragraphStyle.alignment = textAlignment
                 paragraphStyle.lineBreakMode = textContainer.lineBreakMode
                 placeholderAttributes[NSParagraphStyleAttributeName] = paragraphStyle
@@ -104,18 +104,18 @@ import UIKit
                                              right: contentInset.right + textContainerInset.right + textContainer.lineFragmentPadding)
         
         let placeholderRect = UIEdgeInsetsInsetRect(rect, placeholderInsets)
-        placeholder.drawInRect(placeholderRect, withAttributes: placeholderAttributes)
+        placeholder.draw(in: placeholderRect, withAttributes: placeholderAttributes)
     }
     
     // MARK: - Helper Methods
     
     private func commonInitializer() {
-        contentMode = .TopLeft
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(RSKPlaceholderTextView.handleTextViewTextDidChangeNotification(_:)), name: UITextViewTextDidChangeNotification, object: self)
+        contentMode = .topLeft
+        NotificationCenter.default.addObserver(self, selector: #selector(RSKPlaceholderTextView.handleTextViewTextDidChangeNotification(_:)), name: NSNotification.Name.UITextViewTextDidChange, object: self)
     }
     
-    internal func handleTextViewTextDidChangeNotification(notification: NSNotification) {
-        guard let object = notification.object where object === self else {
+    internal func handleTextViewTextDidChangeNotification(_ notification: Notification) {
+        guard let object = notification.object as? RSKPlaceholderTextView, object === self else {
             return
         }
         setNeedsDisplay()
