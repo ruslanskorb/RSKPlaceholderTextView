@@ -44,7 +44,7 @@ import UIKit
     
     override public var textContainerInset: UIEdgeInsets { didSet { setNeedsDisplay() } }
     
-    override public var typingAttributes: [String : AnyObject] {
+    override public var typingAttributes: [String : Any] {
         didSet {
             guard isEmpty else {
                 return
@@ -81,7 +81,7 @@ import UIKit
             return
         }
         
-        var placeholderAttributes = typingAttributes ?? [String: AnyObject]()
+        var placeholderAttributes = typingAttributes
         if placeholderAttributes[NSFontAttributeName] == nil {
             placeholderAttributes[NSFontAttributeName] = typingAttributes[NSFontAttributeName] ?? font ?? UIFont.systemFont(ofSize: UIFont.systemFontSize)
         }
@@ -115,7 +115,7 @@ import UIKit
     }
     
     internal func handleTextViewTextDidChangeNotification(_ notification: Notification) {
-        guard let object = notification.object, object === self else {
+        guard let object = notification.object as? RSKPlaceholderTextView, object === self else {
             return
         }
         setNeedsDisplay()
