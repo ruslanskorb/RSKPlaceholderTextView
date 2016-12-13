@@ -25,7 +25,7 @@ import UIKit
     open var isEmpty: Bool { return text.isEmpty }
     
     /// The string that is displayed when there is no other text in the placeholder text view. This value is `nil` by default.
-    @IBInspectable open var placeholder: NSString? { didSet { setNeedsDisplay() } }
+    @IBInspectable open var placeholder: String? { didSet { setNeedsDisplay() } }
     
     /// The color of the placeholder. This property applies to the entire placeholder string. The default placeholder color is `UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)`.
     @IBInspectable open var placeholderColor: UIColor = UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0) { didSet { setNeedsDisplay() } }
