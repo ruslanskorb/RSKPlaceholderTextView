@@ -50,6 +50,10 @@ import UIKit
         return placeholderInsets
     }
     
+    private lazy var placeholderLayoutManager: NSLayoutManager = NSLayoutManager()
+    
+    private lazy var placeholderTextContainer: NSTextContainer = NSTextContainer()
+    
     // MARK: - Public Properties
     
     /// The attributed string that is displayed when there is no other text in the placeholder text view. This value is `nil` by default.
@@ -114,7 +118,31 @@ import UIKit
         commonInitializer()
     }
     
-    // MARK: - Drawing
+    // MARK: - Superclass API
+    
+    override open func caretRect(for position: UITextPosition) -> CGRect {
+        guard text.isEmpty == true, let attributedPlaceholder = attributedPlaceholder else {
+            return super.caretRect(for: position)
+        }
+        
+        if placeholderTextContainer.layoutManager == nil {
+            placeholderLayoutManager.addTextContainer(placeholderTextContainer)
+        }
+        
+        let placeholderTextStorage = NSTextStorage(attributedString: attributedPlaceholder)
+        placeholderTextStorage.addLayoutManager(placeholderLayoutManager)
+        
+        placeholderTextContainer.lineFragmentPadding = textContainer.lineFragmentPadding
+        placeholderTextContainer.size = textContainer.size
+        
+        placeholderLayoutManager.ensureLayout(for: placeholderTextContainer)
+        
+        var caretRect = super.caretRect(for: position)
+        
+        caretRect.origin.x = placeholderLayoutManager.usedRect(for: placeholderTextContainer).origin.x + placeholderInsets.left
+        
+        return caretRect
+    }
     
     override open func draw(_ rect: CGRect) {
         super.draw(rect)
@@ -132,7 +160,7 @@ import UIKit
     
     // MARK: - Helper Methods
     
-    fileprivate func commonInitializer() {
+    private func commonInitializer() {
         contentMode = .topLeft
         NotificationCenter.default.addObserver(self, selector: #selector(RSKPlaceholderTextView.handleTextViewTextDidChangeNotification(_:)), name: NSNotification.Name.UITextViewTextDidChange, object: self)
     }
