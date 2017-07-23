@@ -19,13 +19,58 @@ import UIKit
 /// A light-weight UITextView subclass that adds support for placeholder.
 @IBDesignable open class RSKPlaceholderTextView: UITextView {
     
+    // MARK: - Private Properties
+    
+    private var placeholderAttributes: [String: Any] {
+        var placeholderAttributes = typingAttributes
+        if placeholderAttributes[NSFontAttributeName] == nil {
+            placeholderAttributes[NSFontAttributeName] = typingAttributes[NSFontAttributeName] ?? font ?? UIFont.systemFont(ofSize: UIFont.systemFontSize)
+        }
+        if placeholderAttributes[NSParagraphStyleAttributeName] == nil {
+            let typingParagraphStyle = typingAttributes[NSParagraphStyleAttributeName]
+            if typingParagraphStyle == nil {
+                let paragraphStyle = NSMutableParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
+                paragraphStyle.alignment = textAlignment
+                paragraphStyle.lineBreakMode = textContainer.lineBreakMode
+                placeholderAttributes[NSParagraphStyleAttributeName] = paragraphStyle
+            } else {
+                placeholderAttributes[NSParagraphStyleAttributeName] = typingParagraphStyle
+            }
+        }
+        placeholderAttributes[NSForegroundColorAttributeName] = placeholderColor
+        
+        return placeholderAttributes
+    }
+    
+    private var placeholderInsets: UIEdgeInsets {
+        let placeholderInsets = UIEdgeInsets(top: contentInset.top + textContainerInset.top,
+                                             left: contentInset.left + textContainerInset.left + textContainer.lineFragmentPadding,
+                                             bottom: contentInset.bottom + textContainerInset.bottom,
+                                             right: contentInset.right + textContainerInset.right + textContainer.lineFragmentPadding)
+        return placeholderInsets
+    }
+    
     // MARK: - Public Properties
+    
+    /// The attributed string that is displayed when there is no other text in the placeholder text view. This value is `nil` by default.
+    @NSCopying open var attributedPlaceholder: NSAttributedString? { didSet { setNeedsDisplay() } }
     
     /// Determines whether or not the placeholder text view contains text.
     open var isEmpty: Bool { return text.isEmpty }
     
     /// The string that is displayed when there is no other text in the placeholder text view. This value is `nil` by default.
-    @IBInspectable open var placeholder: NSString? { didSet { setNeedsDisplay() } }
+    @IBInspectable open var placeholder: NSString? {
+        get {
+            return attributedPlaceholder?.string as NSString?
+        }
+        set {
+            if let newValue = newValue as String? {
+                attributedPlaceholder = NSAttributedString(string: newValue, attributes: placeholderAttributes)
+            } else {
+                attributedPlaceholder = nil
+            }
+        }
+    }
     
     /// The color of the placeholder. This property applies to the entire placeholder string. The default placeholder color is `UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)`.
     @IBInspectable open var placeholderColor: UIColor = UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0) { didSet { setNeedsDisplay() } }
@@ -77,34 +122,12 @@ import UIKit
         guard isEmpty else {
             return
         }
-        guard let placeholder = self.placeholder else {
+        guard let attributedPlaceholder = attributedPlaceholder else {
             return
         }
         
-        var placeholderAttributes = typingAttributes
-        if placeholderAttributes[NSFontAttributeName] == nil {
-            placeholderAttributes[NSFontAttributeName] = typingAttributes[NSFontAttributeName] ?? font ?? UIFont.systemFont(ofSize: UIFont.systemFontSize)
-        }
-        if placeholderAttributes[NSParagraphStyleAttributeName] == nil {
-            let typingParagraphStyle = typingAttributes[NSParagraphStyleAttributeName]
-            if typingParagraphStyle == nil {
-                let paragraphStyle = NSMutableParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
-                paragraphStyle.alignment = textAlignment
-                paragraphStyle.lineBreakMode = textContainer.lineBreakMode
-                placeholderAttributes[NSParagraphStyleAttributeName] = paragraphStyle
-            } else {
-                placeholderAttributes[NSParagraphStyleAttributeName] = typingParagraphStyle
-            }
-        }
-        placeholderAttributes[NSForegroundColorAttributeName] = placeholderColor
-        
-        let placeholderInsets = UIEdgeInsets(top: contentInset.top + textContainerInset.top,
-                                             left: contentInset.left + textContainerInset.left + textContainer.lineFragmentPadding,
-                                             bottom: contentInset.bottom + textContainerInset.bottom,
-                                             right: contentInset.right + textContainerInset.right + textContainer.lineFragmentPadding)
-        
         let placeholderRect = UIEdgeInsetsInsetRect(rect, placeholderInsets)
-        placeholder.draw(in: placeholderRect, withAttributes: placeholderAttributes)
+        attributedPlaceholder.draw(in: placeholderRect)
     }
     
     // MARK: - Helper Methods
