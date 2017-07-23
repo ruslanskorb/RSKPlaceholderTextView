@@ -57,7 +57,14 @@ import UIKit
     // MARK: - Public Properties
     
     /// The attributed string that is displayed when there is no other text in the placeholder text view. This value is `nil` by default.
-    @NSCopying open var attributedPlaceholder: NSAttributedString? { didSet { setNeedsDisplay() } }
+    @NSCopying open var attributedPlaceholder: NSAttributedString? {
+        didSet {
+            guard isEmpty == true else {
+                return
+            }
+            setNeedsDisplay()
+        }
+    }
     
     /// Determines whether or not the placeholder text view contains text.
     open var isEmpty: Bool { return text.isEmpty }
@@ -77,7 +84,13 @@ import UIKit
     }
     
     /// The color of the placeholder. This property applies to the entire placeholder string. The default placeholder color is `UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)`.
-    @IBInspectable open var placeholderColor: UIColor = UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0) { didSet { setNeedsDisplay() } }
+    @IBInspectable open var placeholderColor: UIColor = UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0) {
+        didSet {
+            if let placeholder = placeholder as String? {
+                attributedPlaceholder = NSAttributedString(string: placeholder, attributes: placeholderAttributes)
+            }
+        }
+    }
     
     // MARK: - Superclass Properties
     
@@ -87,18 +100,29 @@ import UIKit
     
     override open var contentInset: UIEdgeInsets { didSet { setNeedsDisplay() } }
     
-    override open var font: UIFont? { didSet { setNeedsDisplay() } }
+    override open var font: UIFont? {
+        didSet {
+            if let placeholder = placeholder as String? {
+                attributedPlaceholder = NSAttributedString(string: placeholder, attributes: placeholderAttributes)
+            }
+        }
+    }
     
-    override open var textAlignment: NSTextAlignment { didSet { setNeedsDisplay() } }
+    override open var textAlignment: NSTextAlignment {
+        didSet {
+            if let placeholder = placeholder as String? {
+                attributedPlaceholder = NSAttributedString(string: placeholder, attributes: placeholderAttributes)
+            }
+        }
+    }
     
     override open var textContainerInset: UIEdgeInsets { didSet { setNeedsDisplay() } }
     
     override open var typingAttributes: [String : Any] {
         didSet {
-            guard isEmpty else {
-                return
+            if let placeholder = placeholder as String? {
+                attributedPlaceholder = NSAttributedString(string: placeholder, attributes: placeholderAttributes)
             }
-            setNeedsDisplay()
         }
     }
     
