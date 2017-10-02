@@ -72,6 +72,35 @@ import UIKit
     
     // MARK: - Open Properties
     
+    /// The radius to use when drawing rounded corners for the view. Default value is 0.
+    @IBInspectable open var cornerRadius: CGFloat = 0 {
+        didSet { setNeedsDisplay() }
+    }
+    
+    /// The width of the view’s border. Default value is 0.
+    @IBInspectable open var borderWidth: CGFloat = 0 {
+        didSet { setNeedsDisplay() }
+    }
+    
+    /// The color of the view’s border. Default value is UIColor(white: 0.8, alpha: 1.0).
+    @IBInspectable open var borderColor: UIColor = UIColor(white: 0.8, alpha: 1.0) {
+        didSet { setNeedsDisplay() }
+    }
+    
+    /// View's layout margins. Default value is 0.
+    @IBInspectable public var bottomInset: CGFloat = 0 {
+        didSet { setNeedsDisplay() }
+    }
+    @IBInspectable public var leftInset: CGFloat = 0 {
+        didSet { setNeedsDisplay() }
+    }
+    @IBInspectable public var rightInset: CGFloat = 0 {
+        didSet { setNeedsDisplay() }
+    }
+    @IBInspectable public var topInset: CGFloat = 0 {
+        didSet { setNeedsDisplay() }
+    }
+    
     /// The attributed string that is displayed when there is no other text in the placeholder text view. This value is `nil` by default.
     @NSCopying open var attributedPlaceholder: NSAttributedString? {
         
@@ -213,6 +242,11 @@ import UIKit
         return caretRect
     }
     
+    open override func layoutSubviews() {
+        self.textContainerInset = UIEdgeInsetsMake(topInset, leftInset, bottomInset, rightInset)
+        super.layoutSubviews()
+    }
+    
     open override func draw(_ rect: CGRect) {
         
         super.draw(rect)
@@ -226,6 +260,10 @@ import UIKit
             
             return
         }
+        
+        self.layer.borderWidth = self.borderWidth
+        self.layer.borderColor = self.borderColor.cgColor
+        self.layer.cornerRadius = self.cornerRadius
         
         let placeholderRect = UIEdgeInsetsInsetRect(rect, self.placeholderInsets)
         attributedPlaceholder.draw(in: placeholderRect)
