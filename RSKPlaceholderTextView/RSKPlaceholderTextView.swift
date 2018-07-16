@@ -208,7 +208,16 @@ import UIKit
         
         var caretRect = super.caretRect(for: position)
         
-        caretRect.origin.x = self.placeholderLayoutManager.usedRect(for: self.placeholderTextContainer).origin.x + self.placeholderInsets.left
+        let placeholderUsedRect = self.placeholderLayoutManager.usedRect(for: self.placeholderTextContainer)
+        
+        if UIApplication.shared.userInterfaceLayoutDirection == .leftToRight {
+            
+            caretRect.origin.x = placeholderUsedRect.minX + self.placeholderInsets.left
+        }
+        else {
+            
+            caretRect.origin.x = self.placeholderTextContainer.size.width - placeholderUsedRect.minX - self.placeholderInsets.left
+        }
         
         return caretRect
     }
