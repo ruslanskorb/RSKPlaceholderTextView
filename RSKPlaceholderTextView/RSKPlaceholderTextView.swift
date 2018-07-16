@@ -216,7 +216,7 @@ import UIKit
         }
         else {
             
-            caretRect.origin.x = self.placeholderTextContainer.size.width - placeholderUsedRect.minX - self.placeholderInsets.left
+            caretRect.origin.x = placeholderUsedRect.maxX - self.placeholderInsets.left
         }
         
         return caretRect
