@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.license      = { :type => 'Apache', :file => 'LICENSE' }
   s.authors      = { 'Ruslan Skorb' => 'ruslan.skorb@gmail.com' }
   s.source       = { :git => 'https://github.com/ruslanskorb/RSKPlaceholderTextView.git', :tag => s.version.to_s }
-  s.platform     = :ios, '8.0'
+  s.platform     = :ios, '9.0'
   s.source_files = 'RSKPlaceholderTextView/*.{swift}'
   s.framework    = 'UIKit'
   s.requires_arc = true
