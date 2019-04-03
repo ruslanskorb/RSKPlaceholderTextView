@@ -213,6 +213,9 @@ import UIKit
             
         case .rightToLeft:
             caretRect.origin.x = placeholderUsedRect.maxX - self.placeholderInsets.left
+
+        @unknown default:
+            caretRect.origin.x = placeholderUsedRect.minX + self.placeholderInsets.left
         }
         
         return caretRect
