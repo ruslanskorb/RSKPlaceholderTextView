@@ -270,7 +270,7 @@ import UIKit
         placeholderTextStorage.addLayoutManager(self.placeholderLayoutManager)
         
         self.placeholderTextContainer.lineFragmentPadding = self.textContainer.lineFragmentPadding
-        self.placeholderTextContainer.size = CGSize(width: self.textContainer.size.width, height: CGFloat.greatestFiniteMagnitude)
+        self.placeholderTextContainer.size = CGSize(width: self.textContainer.size.width, height: 0.0)
         
         self.placeholderLayoutManager.ensureLayout(for: self.placeholderTextContainer)
         
