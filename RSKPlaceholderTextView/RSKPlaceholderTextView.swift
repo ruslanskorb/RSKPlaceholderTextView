@@ -128,7 +128,8 @@ import UIKit
     open override var intrinsicContentSize: CGSize {
         
         guard self.text.isEmpty == true,
-            let attributedPlaceholder = self.attributedPlaceholder else {
+            let attributedPlaceholder = self.attributedPlaceholder,
+            attributedPlaceholder.length > 0 else {
                 
                 return super.intrinsicContentSize
         }
@@ -187,7 +188,8 @@ import UIKit
     open override func caretRect(for position: UITextPosition) -> CGRect {
         
         guard self.text.isEmpty == true,
-            let attributedPlaceholder = self.attributedPlaceholder else {
+            let attributedPlaceholder = self.attributedPlaceholder,
+            attributedPlaceholder.length > 0 else {
             
             return super.caretRect(for: position)
         }
