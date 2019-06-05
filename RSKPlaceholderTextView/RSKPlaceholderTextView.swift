@@ -56,6 +56,23 @@ import UIKit
     
     private lazy var placeholderTextContainer: NSTextContainer = NSTextContainer()
     
+    private func placeholderUsedRect(for attributedPlaceholder: NSAttributedString) -> CGRect {
+        if self.placeholderTextContainer.layoutManager == nil {
+            
+            self.placeholderLayoutManager.addTextContainer(self.placeholderTextContainer)
+        }
+        
+        let placeholderTextStorage = NSTextStorage(attributedString: attributedPlaceholder)
+        placeholderTextStorage.addLayoutManager(self.placeholderLayoutManager)
+        
+        self.placeholderTextContainer.lineFragmentPadding = self.textContainer.lineFragmentPadding
+        self.placeholderTextContainer.size = CGSize(width: self.textContainer.size.width, height: CGFloat.greatestFiniteMagnitude)
+        
+        self.placeholderLayoutManager.ensureLayout(for: self.placeholderTextContainer)
+        
+        return self.placeholderLayoutManager.usedRect(for: self.placeholderTextContainer)
+    }
+    
     // MARK: - Open Properties
     
     /// The attributed string that is displayed when there is no other text in the placeholder text view. This value is `nil` by default.
@@ -170,6 +187,15 @@ import UIKit
         self.commonInitializer()
     }
     
+    open override var intrinsicContentSize: CGSize {
+        guard self.text.isEmpty == true, let attributedPlaceholder = self.attributedPlaceholder else {
+            return super.intrinsicContentSize
+        }
+        
+        let placeholderInsets = self.placeholderInsets
+        return CGSize(width: UIView.noIntrinsicMetric, height: self.placeholderUsedRect(for: attributedPlaceholder).height + placeholderInsets.top + placeholderInsets.bottom)
+    }
+    
     // MARK: - Superclass API
     
     open override func caretRect(for position: UITextPosition) -> CGRect {
@@ -179,22 +205,9 @@ import UIKit
             return super.caretRect(for: position)
         }
         
-        if self.placeholderTextContainer.layoutManager == nil {
-            
-            self.placeholderLayoutManager.addTextContainer(self.placeholderTextContainer)
-        }
-        
-        let placeholderTextStorage = NSTextStorage(attributedString: attributedPlaceholder)
-        placeholderTextStorage.addLayoutManager(self.placeholderLayoutManager)
-        
-        self.placeholderTextContainer.lineFragmentPadding = self.textContainer.lineFragmentPadding
-        self.placeholderTextContainer.size = self.textContainer.size
-        
-        self.placeholderLayoutManager.ensureLayout(for: self.placeholderTextContainer)
-        
         var caretRect = super.caretRect(for: position)
         
-        let placeholderUsedRect = self.placeholderLayoutManager.usedRect(for: self.placeholderTextContainer)
+        let placeholderUsedRect = self.placeholderUsedRect(for: attributedPlaceholder)
         
         let userInterfaceLayoutDirection: UIUserInterfaceLayoutDirection
         if #available(iOS 10.0, *) {
