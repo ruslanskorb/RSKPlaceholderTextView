@@ -125,19 +125,6 @@ import UIKit
         }
     }
     
-    open override var intrinsicContentSize: CGSize {
-        
-        guard self.text.isEmpty == true,
-            let attributedPlaceholder = self.attributedPlaceholder,
-            attributedPlaceholder.length > 0 else {
-                
-                return super.intrinsicContentSize
-        }
-        
-        let placeholderInsets = self.placeholderInsets
-        return CGSize(width: UIView.noIntrinsicMetric, height: self.placeholderUsedRect(for: attributedPlaceholder).height + placeholderInsets.top + placeholderInsets.bottom)
-    }
-    
     open override var textAlignment: NSTextAlignment {
         
         didSet {
