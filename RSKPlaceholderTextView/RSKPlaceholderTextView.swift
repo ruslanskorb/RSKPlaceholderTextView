@@ -211,13 +211,13 @@ import UIKit
         switch userInterfaceLayoutDirection {
             
         case .rightToLeft:
-            caretRect.origin.x = placeholderUsedRect.maxX - self.placeholderInsets.left
+            caretRect.origin.x = placeholderUsedRect.maxX - self.textContainer.lineFragmentPadding
             
         case .leftToRight:
             fallthrough
             
         @unknown default:
-            caretRect.origin.x = placeholderUsedRect.minX + self.placeholderInsets.left
+            caretRect.origin.x = placeholderUsedRect.minX + self.textContainer.lineFragmentPadding
         }
         
         return caretRect
