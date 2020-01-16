@@ -12,5 +12,6 @@ let package = Package(
     ],
     targets: [
         .target(name: "RSKPlaceholderTextView", path: "RSKPlaceholderTextView")
-    ]
+    ],
+    swiftLanguageVersions: [.v5]
 )
