@@ -9,10 +9,11 @@ A light-weight UITextView subclass that adds support for placeholder.
 ## Installation
 *RSKPlaceholderTextView requires iOS 7.0 or later.*
 
-### iOS 7
+### Using [Swift Package Manager](https://swift.org/package-manager/)
 
-1.  Drag the code itself (.swift files) to your project. As sadly, Swift currently does not support compiling Frameworks for iOS 7.
-2.  Make sure that the files are added to the Target membership.
+1. To add the `RSKPlaceholderTextView` package to your Xcode project, select File > Swift Packages > Add Package Dependency and enter the repository URL. 
+    
+        https://github.com/ruslanskorb/RSKPlaceholderTextView.git
 
 ### Using [CocoaPods](http://cocoapods.org)
 
@@ -29,6 +30,11 @@ A light-weight UITextView subclass that adds support for placeholder.
         github "ruslanskorb/RSKPlaceholderTextView"
 
 2.  Run `carthage update`, then follow the [additional steps required](https://github.com/Carthage/Carthage#adding-frameworks-to-an-application) to add the iOS and/or Mac frameworks into your project.
+
+### iOS 7
+
+1.  Drag the code itself (.swift files) to your project. As sadly, Swift currently does not support compiling Frameworks for iOS 7.
+2.  Make sure that the files are added to the Target membership.
 
 ## Basic Usage
 
