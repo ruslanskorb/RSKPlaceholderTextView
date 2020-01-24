@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name          = 'RSKPlaceholderTextView'
-  s.version       = '6.0.0'
+  s.version       = '6.0.1'
   s.summary       = 'A light-weight UITextView subclass that adds support for placeholder.'
   s.homepage      = 'https://github.com/ruslanskorb/RSKPlaceholderTextView'
   s.license       = { :type => 'Apache', :file => 'LICENSE' }
