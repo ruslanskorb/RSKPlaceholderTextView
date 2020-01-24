@@ -27,7 +27,7 @@ import UIKit
         
         if placeholderAttributes[.font] == nil {
             
-            placeholderAttributes[.font] = self.typingAttributes[.font] ?? self.font ?? UIFont.systemFont(ofSize: UIFont.systemFontSize)
+            placeholderAttributes[.font] = self.font ?? UIFont.systemFont(ofSize: UIFont.systemFontSize)
         }
         
         if placeholderAttributes[.paragraphStyle] == nil {
