@@ -77,7 +77,7 @@ import UIKit
                     self.typingAttributes[.font] = font
                 }
                 if let foregroundColor = attributes[.foregroundColor] as? UIColor,
-                    self.placeholder != foregroundColor {
+                    self.placeholderColor != foregroundColor {
                     
                     self.placeholderColor = foregroundColor
                 }
