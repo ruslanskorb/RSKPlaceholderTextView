@@ -46,9 +46,9 @@ import UIKit
     private var placeholderInsets: UIEdgeInsets {
         
         let placeholderInsets = UIEdgeInsets(top: self.contentInset.top + self.textContainerInset.top,
-                                             left: self.contentInset.left + self.textContainerInset.left + self.textContainer.lineFragmentPadding,
+                                             left: self.contentInset.left + self.textContainerInset.left,
                                              bottom: self.contentInset.bottom + self.textContainerInset.bottom,
-                                             right: self.contentInset.right + self.textContainerInset.right + self.textContainer.lineFragmentPadding)
+                                             right: self.contentInset.right + self.textContainerInset.right)
         return placeholderInsets
     }
     
@@ -252,7 +252,12 @@ import UIKit
             return
         }
         
-        let placeholderRect = rect.inset(by: self.placeholderInsets)
+        var inset = self.placeholderInsets
+        inset.left += self.textContainer.lineFragmentPadding
+        inset.right += self.textContainer.lineFragmentPadding
+        
+        let placeholderRect = rect.inset(by: inset)
+        
         attributedPlaceholder.draw(in: placeholderRect)
     }
     
