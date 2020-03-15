@@ -223,16 +223,17 @@ import UIKit
             userInterfaceLayoutDirection = UIView.userInterfaceLayoutDirection(for: self.semanticContentAttribute)
         }
         
+        let placeholderInsets = self.placeholderInsets
         switch userInterfaceLayoutDirection {
             
         case .rightToLeft:
-            caretRect.origin.x = placeholderUsedRect.maxX - self.textContainer.lineFragmentPadding
+            caretRect.origin.x = placeholderInsets.left + placeholderUsedRect.maxX - self.textContainer.lineFragmentPadding
             
         case .leftToRight:
             fallthrough
             
         @unknown default:
-            caretRect.origin.x = placeholderUsedRect.minX + self.textContainer.lineFragmentPadding
+            caretRect.origin.x = placeholderInsets.left + placeholderUsedRect.minX + self.textContainer.lineFragmentPadding
         }
         
         return caretRect
