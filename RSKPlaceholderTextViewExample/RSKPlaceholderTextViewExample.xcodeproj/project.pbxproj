@@ -377,6 +377,7 @@
 				DEVELOPMENT_TEAM = J3P7YV7464;
 				INFOPLIST_FILE = RSKPlaceholderTextViewExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 6.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ruslanskorb.RSKPlaceholderTextViewExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -390,6 +391,7 @@
 				DEVELOPMENT_TEAM = J3P7YV7464;
 				INFOPLIST_FILE = RSKPlaceholderTextViewExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 6.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ruslanskorb.RSKPlaceholderTextViewExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
