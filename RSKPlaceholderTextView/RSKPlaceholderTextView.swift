@@ -295,6 +295,6 @@ import UIKit
         
         self.placeholderLayoutManager.ensureLayout(for: self.placeholderTextContainer)
         
-        return self.placeholderLayoutManager.lineFragmentUsedRect(forGlyphAt: 0, effectiveRange: nil)
+        return self.placeholderLayoutManager.lineFragmentUsedRect(forGlyphAt: 0, effectiveRange: nil, withoutAdditionalLayout: true)
     }
 }
