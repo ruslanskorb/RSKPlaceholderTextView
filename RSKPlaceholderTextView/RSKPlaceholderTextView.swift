@@ -179,11 +179,6 @@ import UIKit
     
     // MARK: - Object Lifecycle
     
-    deinit {
-        
-        NotificationCenter.default.removeObserver(self, name: UITextView.textDidChangeNotification, object: self)
-    }
-    
     public required init?(coder aDecoder: NSCoder) {
         
         super.init(coder: aDecoder)
@@ -196,6 +191,20 @@ import UIKit
         super.init(frame: frame, textContainer: textContainer)
         
         self.commonInitializer()
+    }
+    
+    @available(iOS 16.0, *)
+    public convenience init(usingTextLayoutManager: Bool) {
+        if usingTextLayoutManager {
+            self.init(frame: .zero, textContainer: nil)
+        } else {
+            let layoutManager = NSLayoutManager()
+            let textStorage = NSTextStorage()
+            textStorage.addLayoutManager(layoutManager)
+            let textContainer = NSTextContainer()
+            layoutManager.addTextContainer(textContainer)
+            self.init(frame: .zero, textContainer: textContainer)
+        }
     }
     
     // MARK: - Superclass API
@@ -213,18 +222,8 @@ import UIKit
         
         let placeholderLineFragmentUsedRect = self.placeholderLineFragmentUsedRectForGlyphAt0GlyphIndex(attributedPlaceholder: attributedPlaceholder)
         
-        let userInterfaceLayoutDirection: UIUserInterfaceLayoutDirection
-        if #available(iOS 10.0, *) {
-            
-            userInterfaceLayoutDirection = self.effectiveUserInterfaceLayoutDirection
-        }
-        else {
-            
-            userInterfaceLayoutDirection = UIView.userInterfaceLayoutDirection(for: self.semanticContentAttribute)
-        }
-        
         let placeholderInsets = self.placeholderInsets
-        switch userInterfaceLayoutDirection {
+        switch self.effectiveUserInterfaceLayoutDirection {
             
         case .rightToLeft:
             caretRect.origin.x = placeholderInsets.left + placeholderLineFragmentUsedRect.maxX - self.textContainer.lineFragmentPadding
