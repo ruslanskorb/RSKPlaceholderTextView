@@ -381,7 +381,7 @@ import UIKit
             else {
                 
                 assertionFailure()
-                return super.sizeThatFits(size)
+                size = .zero
             }
             size.height += self.textContainerInset.top + self.textContainerInset.bottom
             size.width += self.textContainerInset.left + self.textContainerInset.right
