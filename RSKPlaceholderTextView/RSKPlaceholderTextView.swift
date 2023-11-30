@@ -264,12 +264,20 @@ import UIKit
                 
             case .rightToLeft:
                 caretRect.origin.x = self.textContainerInset.left + layoutFragmentFrame.maxX
+                if #unavailable(iOS 17.0) {
+                    
+                    caretRect.origin.x -= self.textContainer.lineFragmentPadding
+                }
                 
             case .leftToRight:
                 fallthrough
                 
             @unknown default:
                 caretRect.origin.x = self.textContainerInset.left + layoutFragmentFrame.minX
+                if #unavailable(iOS 17.0) {
+                    
+                    caretRect.origin.x += self.textContainer.lineFragmentPadding
+                }
             }
         }
         else if let placeholderLayoutManager {
