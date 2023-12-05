@@ -43,18 +43,14 @@ import UIKit
         return placeholderAttributes
     }
     
-    private var placeholderInsets: UIEdgeInsets {
-        
-        let placeholderInsets = UIEdgeInsets(top: self.contentInset.top + self.textContainerInset.top,
-                                             left: self.contentInset.left + self.textContainerInset.left,
-                                             bottom: self.contentInset.bottom + self.textContainerInset.bottom,
-                                             right: self.contentInset.right + self.textContainerInset.right)
-        return placeholderInsets
-    }
+    private var placeholderLayoutManager: NSLayoutManager?
     
-    private lazy var placeholderLayoutManager: NSLayoutManager = NSLayoutManager()
+    private let placeholderTextContainer = NSTextContainer()
     
-    private lazy var placeholderTextContainer: NSTextContainer = NSTextContainer()
+    private var _placeholderTextLayoutManager: NSObject?
+    
+    @available(iOS 16.0, *)
+    private var placeholderTextLayoutManager: NSTextLayoutManager? { self._placeholderTextLayoutManager as? NSTextLayoutManager }
     
     // MARK: - Open Properties
     
@@ -179,23 +175,63 @@ import UIKit
     
     // MARK: - Object Lifecycle
     
-    deinit {
+    required public init?(coder aDecoder: NSCoder) {
         
-        NotificationCenter.default.removeObserver(self, name: UITextView.textDidChangeNotification, object: self)
-    }
-    
-    public required init?(coder aDecoder: NSCoder) {
+        if #available(iOS 16.0, *) {
+            
+            let placeholderTextLayoutManager = NSTextLayoutManager()
+            placeholderTextLayoutManager.textContainer = self.placeholderTextContainer
+            self._placeholderTextLayoutManager = placeholderTextLayoutManager
+        } 
+        else {
+            
+            let placeholderLayoutManager = NSLayoutManager()
+            placeholderLayoutManager.addTextContainer(self.placeholderTextContainer)
+            self.placeholderLayoutManager = placeholderLayoutManager
+        }
         
         super.init(coder: aDecoder)
         
         self.commonInitializer()
     }
     
-    public override init(frame: CGRect, textContainer: NSTextContainer?) {
+    override public init(frame: CGRect, textContainer: NSTextContainer?) {
+        
+        if #available(iOS 16.0, *) {
+            
+            let placeholderTextLayoutManager = NSTextLayoutManager()
+            placeholderTextLayoutManager.textContainer = self.placeholderTextContainer
+            self._placeholderTextLayoutManager = placeholderTextLayoutManager
+        } 
+        else {
+            
+            let placeholderLayoutManager = NSLayoutManager()
+            placeholderLayoutManager.addTextContainer(self.placeholderTextContainer)
+            self.placeholderLayoutManager = placeholderLayoutManager
+        }
         
         super.init(frame: frame, textContainer: textContainer)
         
         self.commonInitializer()
+    }
+    
+    @available(iOS 16.0, *)
+    public convenience init(usingTextLayoutManager: Bool) {
+        
+        if usingTextLayoutManager {
+            
+            self.init(frame: .zero, textContainer: nil)
+        } 
+        else {
+            
+            let layoutManager = NSLayoutManager()
+            let textStorage = NSTextStorage()
+            textStorage.addLayoutManager(layoutManager)
+            let textContainer = NSTextContainer()
+            layoutManager.addTextContainer(textContainer)
+            
+            self.init(frame: .zero, textContainer: textContainer)
+        }
     }
     
     // MARK: - Superclass API
@@ -211,32 +247,87 @@ import UIKit
         
         var caretRect = super.caretRect(for: position)
         
-        let placeholderLineFragmentUsedRect = self.placeholderLineFragmentUsedRectForGlyphAt0GlyphIndex(attributedPlaceholder: attributedPlaceholder)
-        
-        let userInterfaceLayoutDirection: UIUserInterfaceLayoutDirection
-        if #available(iOS 10.0, *) {
+        if #available(iOS 16.0, *), let placeholderTextLayoutManager {
             
-            userInterfaceLayoutDirection = self.effectiveUserInterfaceLayoutDirection
+            let placeholderTextContentStorage = NSTextContentStorage()
+            placeholderTextContentStorage.attributedString = attributedPlaceholder
+            self.configurePlaceholderTextLayoutManager(placeholderTextLayoutManager, withPlaceholderTextContentStorage: placeholderTextContentStorage, textContainerSize: self.textContainer.size)
+            
+            var layoutFragmentFrame = CGRect.zero
+            placeholderTextLayoutManager.enumerateTextLayoutFragments(from: nil) { textLayoutFragment -> Bool in
+                
+                layoutFragmentFrame = textLayoutFragment.layoutFragmentFrame
+                return false
+            }
+            
+            switch self.effectiveUserInterfaceLayoutDirection {
+                
+            case .rightToLeft:
+                caretRect.origin.x = self.textContainerInset.left + layoutFragmentFrame.maxX
+                if #unavailable(iOS 17.0) {
+                    
+                    caretRect.origin.x -= self.textContainer.lineFragmentPadding
+                }
+                
+            case .leftToRight:
+                fallthrough
+                
+            @unknown default:
+                caretRect.origin.x = self.textContainerInset.left + layoutFragmentFrame.minX
+                if #unavailable(iOS 17.0) {
+                    
+                    caretRect.origin.x += self.textContainer.lineFragmentPadding
+                }
+            }
+        }
+        else if let placeholderLayoutManager {
+            
+            let placeholderTextStorage = NSTextStorage(attributedString: attributedPlaceholder)
+            self.configurePlaceholderLayoutManager(placeholderLayoutManager, withPlaceholderTextStorage: placeholderTextStorage, textContainerSize: self.textContainer.size)
+            
+            let lineFragmentUsedRect = placeholderLayoutManager.lineFragmentUsedRect(forGlyphAt: 0, effectiveRange: nil, withoutAdditionalLayout: true)
+            
+            switch self.effectiveUserInterfaceLayoutDirection {
+                
+            case .rightToLeft:
+                caretRect.origin.x = self.textContainerInset.left + lineFragmentUsedRect.maxX - self.textContainer.lineFragmentPadding
+                
+            case .leftToRight:
+                fallthrough
+                
+            @unknown default:
+                caretRect.origin.x = self.textContainerInset.left + lineFragmentUsedRect.minX + self.textContainer.lineFragmentPadding
+            }
         }
         else {
             
-            userInterfaceLayoutDirection = UIView.userInterfaceLayoutDirection(for: self.semanticContentAttribute)
-        }
-        
-        let placeholderInsets = self.placeholderInsets
-        switch userInterfaceLayoutDirection {
-            
-        case .rightToLeft:
-            caretRect.origin.x = placeholderInsets.left + placeholderLineFragmentUsedRect.maxX - self.textContainer.lineFragmentPadding
-            
-        case .leftToRight:
-            fallthrough
-            
-        @unknown default:
-            caretRect.origin.x = placeholderInsets.left + placeholderLineFragmentUsedRect.minX + self.textContainer.lineFragmentPadding
+            assertionFailure()
+            return caretRect
         }
         
         return caretRect
+    }
+    
+    private func configurePlaceholderLayoutManager(_ placeholderLayoutManager: NSLayoutManager, withPlaceholderTextStorage placeholderTextStorage: NSTextStorage, textContainerSize: CGSize) {
+        
+        placeholderTextStorage.addLayoutManager(placeholderLayoutManager)
+        
+        self.placeholderTextContainer.lineFragmentPadding = self.textContainer.lineFragmentPadding
+        self.placeholderTextContainer.size = textContainerSize
+        
+        placeholderLayoutManager.ensureLayout(for: self.placeholderTextContainer)
+    }
+    
+    @available(iOS 16.0, *)
+    private func configurePlaceholderTextLayoutManager(_ placeholderTextLayoutManager: NSTextLayoutManager, withPlaceholderTextContentStorage placeholderTextContentStorage: NSTextContentStorage, textContainerSize: CGSize) {
+        
+        placeholderTextContentStorage.addTextLayoutManager(placeholderTextLayoutManager)
+        
+        self.placeholderTextContainer.lineFragmentPadding = self.textContainer.lineFragmentPadding
+        self.placeholderTextContainer.size = textContainerSize
+        
+        placeholderTextLayoutManager.textContainer = self.placeholderTextContainer
+        placeholderTextLayoutManager.ensureLayout(for: placeholderTextLayoutManager.documentRange)
     }
     
     open override func draw(_ rect: CGRect) {
@@ -253,11 +344,14 @@ import UIKit
             return
         }
         
-        var inset = self.placeholderInsets
-        inset.left += self.textContainer.lineFragmentPadding
-        inset.right += self.textContainer.lineFragmentPadding
-        
-        let placeholderRect = rect.inset(by: inset)
+        let insets = UIEdgeInsets(
+            
+            top: self.contentInset.top + self.textContainerInset.top,
+            left: self.contentInset.left + self.textContainerInset.left + self.textContainer.lineFragmentPadding,
+            bottom: self.contentInset.bottom + self.textContainerInset.bottom,
+            right: self.contentInset.right + self.textContainerInset.right + self.textContainer.lineFragmentPadding
+        )
+        let placeholderRect = rect.inset(by: insets)
         
         attributedPlaceholder.draw(in: placeholderRect)
     }
@@ -268,23 +362,37 @@ import UIKit
            let attributedPlaceholder = self.attributedPlaceholder,
            attributedPlaceholder.length > 0 {
             
-            let placeholderInsets = self.placeholderInsets
-            
             var textContainerSize = size
-            textContainerSize.width -= placeholderInsets.left + placeholderInsets.right
-            textContainerSize.height -= placeholderInsets.top + placeholderInsets.bottom
+            textContainerSize.height -= self.textContainerInset.top + self.textContainerInset.bottom
+            textContainerSize.width -= self.textContainerInset.left + self.textContainerInset.right
             
-            let placeholderUsedRect = self.placeholderUsedRect(
+            var size: CGSize
+            if #available(iOS 16.0, *), let placeholderTextLayoutManager {
                 
-                attributedPlaceholder: attributedPlaceholder,
-                textContainerSize: textContainerSize
-            )
-            
-            let size = CGSize(
+                let placeholderTextContentStorage = NSTextContentStorage()
+                placeholderTextContentStorage.attributedString = attributedPlaceholder
                 
-                width: ceil(placeholderInsets.left + placeholderUsedRect.maxX + placeholderInsets.right),
-                height: ceil(placeholderInsets.top + placeholderUsedRect.maxY + placeholderInsets.bottom)
-            )
+                self.configurePlaceholderTextLayoutManager(placeholderTextLayoutManager, withPlaceholderTextContentStorage: placeholderTextContentStorage, textContainerSize: textContainerSize)
+                
+                size = placeholderTextLayoutManager.usageBoundsForTextContainer.size
+                size.width += self.textContainer.lineFragmentPadding * 2.0
+            }
+            else if let placeholderLayoutManager {
+                
+                let placeholderTextStorage = NSTextStorage(attributedString: attributedPlaceholder)
+                
+                self.configurePlaceholderLayoutManager(placeholderLayoutManager, withPlaceholderTextStorage: placeholderTextStorage, textContainerSize: textContainerSize)
+                
+                let usedRect = placeholderLayoutManager.usedRect(for: self.placeholderTextContainer)
+                size = usedRect.size
+            }
+            else {
+                
+                assertionFailure()
+                size = .zero
+            }
+            size.height += self.textContainerInset.top + self.textContainerInset.bottom
+            size.width += self.textContainerInset.left + self.textContainerInset.right
             return size
         }
         else {
@@ -295,33 +403,21 @@ import UIKit
     
     open override func sizeToFit() {
         
-        if self.isEmpty == true,
-           let attributedPlaceholder = self.attributedPlaceholder,
-           attributedPlaceholder.length > 0 {
-            
-            let placeholderUsedRect = self.placeholderUsedRect(
-                
-                attributedPlaceholder: attributedPlaceholder,
-                textContainerSize: .zero
-            )
-            
-            let placeholderInsets = self.placeholderInsets
-            self.bounds.size = CGSize(
-                
-                width: ceil(placeholderInsets.left + placeholderUsedRect.maxX + placeholderInsets.right),
-                height: ceil(placeholderInsets.top + placeholderUsedRect.maxY + placeholderInsets.bottom)
-            )
-        }
-        else {
-            
-            return super.sizeToFit()
-        }
+        self.bounds.size = self.sizeThatFits(.zero)
     }
     
     // MARK: - Private API
     
     private func commonInitializer() {
         
+        if #available(iOS 16.0, *), self.textLayoutManager == nil {
+            
+            self._placeholderTextLayoutManager = nil
+            
+            let placeholderLayoutManager = NSLayoutManager()
+            placeholderLayoutManager.addTextContainer(self.placeholderTextContainer)
+            self.placeholderLayoutManager = placeholderLayoutManager
+        }
         self.contentMode = .topLeft
         
         NotificationCenter.default.addObserver(self, selector: #selector(RSKPlaceholderTextView.handleTextViewTextDidChangeNotification(_:)), name: UITextView.textDidChangeNotification, object: self)
@@ -334,41 +430,5 @@ import UIKit
             return
         }
         self.setNeedsDisplay()
-    }
-    
-    private func placeholderLineFragmentUsedRectForGlyphAt0GlyphIndex(attributedPlaceholder: NSAttributedString) -> CGRect {
-        
-        if self.placeholderTextContainer.layoutManager == nil {
-            
-            self.placeholderLayoutManager.addTextContainer(self.placeholderTextContainer)
-        }
-        
-        let placeholderTextStorage = NSTextStorage(attributedString: attributedPlaceholder)
-        placeholderTextStorage.addLayoutManager(self.placeholderLayoutManager)
-        
-        self.placeholderTextContainer.lineFragmentPadding = self.textContainer.lineFragmentPadding
-        self.placeholderTextContainer.size = self.textContainer.size
-        
-        self.placeholderLayoutManager.ensureLayout(for: self.placeholderTextContainer)
-        
-        return self.placeholderLayoutManager.lineFragmentUsedRect(forGlyphAt: 0, effectiveRange: nil, withoutAdditionalLayout: true)
-    }
-    
-    private func placeholderUsedRect(attributedPlaceholder: NSAttributedString, textContainerSize: CGSize) -> CGRect {
-        
-        if self.placeholderTextContainer.layoutManager == nil {
-            
-            self.placeholderLayoutManager.addTextContainer(self.placeholderTextContainer)
-        }
-        
-        let placeholderTextStorage = NSTextStorage(attributedString: attributedPlaceholder)
-        placeholderTextStorage.addLayoutManager(self.placeholderLayoutManager)
-        
-        self.placeholderTextContainer.lineFragmentPadding = self.textContainer.lineFragmentPadding
-        self.placeholderTextContainer.size = textContainerSize
-        
-        self.placeholderLayoutManager.ensureLayout(for: self.placeholderTextContainer)
-        
-        return self.placeholderLayoutManager.usedRect(for: self.placeholderTextContainer)
     }
 }
