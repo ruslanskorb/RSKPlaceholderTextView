@@ -30,12 +30,22 @@ import UIKit
             placeholderAttributes[.font] = self.font ?? UIFont.systemFont(ofSize: UIFont.systemFontSize)
         }
         
-        if placeholderAttributes[.paragraphStyle] == nil {
+        if let paragraphStyle = placeholderAttributes[.paragraphStyle] as? NSParagraphStyle {
             
-            let paragraphStyle = NSMutableParagraphStyle()
-            paragraphStyle.alignment = self.textAlignment
-            paragraphStyle.lineBreakMode = self.textContainer.lineBreakMode
-            placeholderAttributes[.paragraphStyle] = paragraphStyle
+            if paragraphStyle.lineBreakMode != self.placeholderLineBreakMode {
+                
+                let mutableParagraphStyle = NSMutableParagraphStyle()
+                mutableParagraphStyle.setParagraphStyle(paragraphStyle)
+                mutableParagraphStyle.lineBreakMode = self.placeholderLineBreakMode
+                placeholderAttributes[.paragraphStyle] = mutableParagraphStyle
+            }
+        }
+        else {
+            
+            let mutableParagraphStyle = NSMutableParagraphStyle()
+            mutableParagraphStyle.alignment = self.textAlignment
+            mutableParagraphStyle.lineBreakMode = self.placeholderLineBreakMode
+            placeholderAttributes[.paragraphStyle] = mutableParagraphStyle
         }
         
         placeholderAttributes[.foregroundColor] = self.placeholderColor
@@ -70,6 +80,7 @@ import UIKit
                     self.font != font {
                     
                     self.font = font
+                    
                     self.typingAttributes[.font] = font
                 }
                 if let foregroundColor = attributes[.foregroundColor] as? UIColor,
@@ -77,14 +88,24 @@ import UIKit
                     
                     self.placeholderColor = foregroundColor
                 }
-                if let paragraphStyle = attributes[.paragraphStyle] as? NSParagraphStyle,
-                    self.textAlignment != paragraphStyle.alignment {
+                if let paragraphStyle = attributes[.paragraphStyle] as? NSParagraphStyle {
                     
-                    let mutableParagraphStyle = NSMutableParagraphStyle()
-                    mutableParagraphStyle.setParagraphStyle(paragraphStyle)
-                    
-                    self.textAlignment = paragraphStyle.alignment
-                    self.typingAttributes[.paragraphStyle] = mutableParagraphStyle
+                    if self.placeholderLineBreakMode != paragraphStyle.lineBreakMode {
+                        
+                        self.placeholderLineBreakMode = paragraphStyle.lineBreakMode
+                    }
+                    if self.textAlignment != paragraphStyle.alignment {
+                        
+                        self.textAlignment = paragraphStyle.alignment
+                        
+                        let mutableTypingAttributesParagraphStyle = NSMutableParagraphStyle()
+                        if let typingAttributesParagraphStyle = self.typingAttributes[.paragraphStyle] as? NSParagraphStyle {
+                            
+                            mutableTypingAttributesParagraphStyle.setParagraphStyle(typingAttributesParagraphStyle)
+                        }
+                        mutableTypingAttributesParagraphStyle.alignment = paragraphStyle.alignment
+                        self.typingAttributes[.paragraphStyle] = mutableTypingAttributesParagraphStyle
+                    }
                 }
             }
             guard self.isEmpty == true else {
@@ -118,8 +139,20 @@ import UIKit
         }
     }
     
-    /// The color of the placeholder. This property applies to the entire placeholder string. The default placeholder color is `UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)`.
+    /// The color of the placeholder. This property applies to the entire placeholder. The default value of this property is `UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)`.
     @IBInspectable open var placeholderColor: UIColor = UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0) {
+        
+        didSet {
+            
+            if let placeholder = self.placeholder as String? {
+                
+                self.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: self.placeholderAttributes)
+            }
+        }
+    }
+    
+    /// The technique for wrapping and truncating the placeholder. This property applies to the entire placeholder. The default value of this property is `NSLineBreakMode.byWordWrapping`.
+    open var placeholderLineBreakMode: NSLineBreakMode = .byWordWrapping {
         
         didSet {
             
@@ -419,6 +452,7 @@ import UIKit
             self.placeholderLayoutManager = placeholderLayoutManager
         }
         self.contentMode = .topLeft
+        self.placeholderLineBreakMode = self.textContainer.lineBreakMode
         
         NotificationCenter.default.addObserver(self, selector: #selector(RSKPlaceholderTextView.handleTextViewTextDidChangeNotification(_:)), name: UITextView.textDidChangeNotification, object: self)
     }
