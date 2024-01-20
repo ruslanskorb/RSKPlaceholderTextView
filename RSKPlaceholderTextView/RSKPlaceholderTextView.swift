@@ -452,7 +452,6 @@ import UIKit
             self.placeholderLayoutManager = placeholderLayoutManager
         }
         self.contentMode = .topLeft
-        self.placeholderLineBreakMode = self.textContainer.lineBreakMode
         
         NotificationCenter.default.addObserver(self, selector: #selector(RSKPlaceholderTextView.handleTextViewTextDidChangeNotification(_:)), name: UITextView.textDidChangeNotification, object: self)
     }
