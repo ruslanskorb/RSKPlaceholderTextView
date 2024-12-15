@@ -61,7 +61,6 @@ Have fun. Figure out hooks for customization.
 Ruslan Skorb
 
 - http://github.com/ruslanskorb
-- http://twitter.com/ruslanskorb
 - ruslan.skorb@gmail.com
 
 ## License
